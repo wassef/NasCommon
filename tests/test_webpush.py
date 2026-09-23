@@ -125,3 +125,10 @@ def test_a_browsers_subscription_is_cleaned_and_anything_else_says_why():
     for name, (body, why) in refusals.items():
         subscription, error = subscription_from(body)
         assert subscription is None and why in error, name
+
+
+def test_what_is_not_a_url_is_no_push_service_and_no_error():
+    for broken in ("https://[::1", "http://[invalid/x", ""):
+        assert not at_a_push_service(broken) and push_host(broken) == ""
+    body = {"endpoint": "https://[fcm.googleapis.com/x", "keys": {"p256dh": P256, "auth": AUTH}}
+    assert subscription_from(body)[0] is None

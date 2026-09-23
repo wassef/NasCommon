@@ -80,17 +80,27 @@ def send_one(
         return False, False, f"{type(exc).__name__}: {str(exc)[:160]}"
 
 
+def _split(endpoint: str) -> tuple[str, str]:
+    """(scheme, lower-cased host), or ("", "") for what is not a URL at all: `urlsplit` raises on
+    a malformed IPv6 bracket, and a check that raises is a 500 where a refusal was meant."""
+    try:
+        parts = urlsplit(endpoint)
+        return parts.scheme, (parts.hostname or "").lower()
+    except ValueError:
+        return "", ""
+
+
 def push_host(endpoint: str) -> str:
     """The push service's host, lower-cased: what may be logged, where the full endpoint may not
     (it is a capability URL — whoever holds it can message the device)."""
-    return (urlsplit(endpoint).hostname or "").lower()
+    return _split(endpoint)[1]
 
 
 def at_a_push_service(endpoint: str) -> bool:
     """An https endpoint on one of `PUSH_SERVICES`, or a subdomain of one."""
-    if urlsplit(endpoint).scheme != "https":
+    scheme, host = _split(endpoint)
+    if scheme != "https":
         return False
-    host = push_host(endpoint)
     return any(host == s or host.endswith("." + s) for s in PUSH_SERVICES)
 
 

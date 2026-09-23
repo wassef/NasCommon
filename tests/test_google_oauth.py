@@ -48,9 +48,14 @@ def test_valid_credentials_are_returned_as_they_are(monkeypatch, tmp_path):
 def test_expired_credentials_are_refreshed_and_written_back_0600(monkeypatch, tmp_path):
     creds = Creds(valid=False, expired=True)
     token = with_file(monkeypatch, tmp_path, creds)
-    assert load_credentials(token, SCOPES) is creds and creds.refreshed
+    told = []
+    assert load_credentials(token, SCOPES, on_refresh=lambda: told.append("refreshed")) is creds
+    assert creds.refreshed and told == ["refreshed"]
     assert token.read_text() == '{"token": "fresh"}'
     assert stat.S_IMODE(token.stat().st_mode) == 0o600
+    again = Creds(valid=False, expired=True)
+    token = with_file(monkeypatch, tmp_path, again)
+    assert load_credentials(token, SCOPES) is again and again.refreshed, "the hook is optional"
 
 
 def test_a_read_only_mount_keeps_the_refresh_in_memory_and_says_so(monkeypatch, tmp_path):
@@ -62,8 +67,13 @@ def test_a_read_only_mount_keeps_the_refresh_in_memory_and_says_so(monkeypatch, 
 
     monkeypatch.setattr(google_oauth, "write_token", refuse)
     told = []
-    assert load_credentials(token, SCOPES, on_write_error=told.append) is creds
-    assert isinstance(told[0], PermissionError)
+    assert (
+        load_credentials(token, SCOPES, on_write_error=told.append, on_refresh=lambda: told.append("x"))
+        is creds
+    )
+    assert len(told) == 1 and isinstance(told[0], PermissionError), (
+        "a refresh that was not written is not one"
+    )
     quiet = Creds(valid=False, expired=True)
     token = with_file(monkeypatch, tmp_path, quiet)
     assert load_credentials(token, SCOPES) is quiet and quiet.refreshed, "without a listener it stays quiet"

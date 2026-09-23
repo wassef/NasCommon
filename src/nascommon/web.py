@@ -57,7 +57,11 @@ def csrf_verdict(method: str, headers: Mapping[str, str]) -> tuple[int, str] | N
     origin = headers.get("origin")
     if origin:
         host = (headers.get("x-forwarded-host") or headers.get("host") or "").lower()
-        if (urlsplit(origin).hostname or "") != (urlsplit(f"//{host}").hostname or ""):
+        try:
+            same = (urlsplit(origin).hostname or "") == (urlsplit(f"//{host}").hostname or "")
+        except ValueError:  # a malformed IPv6 bracket in either: not ours, and not a 500
+            same = False
+        if not same:
             return 403, "origin mismatch"
     return None
 

@@ -32,9 +32,14 @@ def load_credentials(
     scopes: Sequence[str],
     *,
     client_secrets: Path | None = None,
+    on_refresh: Callable[[], None] | None = None,
     on_write_error: Callable[[OSError], None] | None = None,
 ) -> Any:
-    """Valid credentials from `token_file`, refreshed and written back when they had expired."""
+    """Valid credentials from `token_file`, refreshed and written back when they had expired.
+
+    `on_refresh` is told after a refresh was written back, `on_write_error` when it could not be:
+    the caller's log says which, where this module logs nothing of its own.
+    """
     from google.auth.transport.requests import Request
     from google.oauth2.credentials import Credentials
 
@@ -50,6 +55,9 @@ def load_credentials(
         except OSError as exc:  # a read-only mount: refreshed in memory for this process
             if on_write_error is not None:
                 on_write_error(exc)
+        else:
+            if on_refresh is not None:
+                on_refresh()
         return creds
     where = f" with {client_secrets}" if client_secrets else ""
     raise NoCredentials(f"no valid Google credentials in {token_file}; run the bootstrap once{where}")

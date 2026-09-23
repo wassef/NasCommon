@@ -71,6 +71,13 @@ def test_the_origin_is_compared_by_host_name_so_a_proxy_that_drops_the_port_stil
     )
 
 
+def test_an_origin_that_is_not_a_url_is_refused_not_raised():
+    assert csrf_verdict("POST", Headers(origin="https://[::1", host="nas.example")) == (
+        403,
+        "origin mismatch",
+    )
+
+
 def test_headers_differ_only_where_the_apps_do():
     strict = security_headers()
     assert "script-src 'self';" in strict["Content-Security-Policy"]
