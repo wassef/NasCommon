@@ -35,7 +35,8 @@ class UsageCache(Generic[T]):
 
     async def get(self, *, max_age: float | None = None) -> T | None:
         ttl = self._ttl if max_age is None else max_age
-        if self._fetched_at is not None and self._clock() - self._fetched_at < ttl:
+        now = self._clock()
+        if self._fetched_at is not None and now - self._fetched_at < ttl:
             return self._value
         self._value = await self._fetch()
         self._fetched_at = self._clock()
