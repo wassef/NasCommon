@@ -1,0 +1,25 @@
+# Install once: uv tool install pre-commit && pre-commit install
+# gitleaks binary: brew install gitleaks
+repos:
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks (staged secrets scan)
+        entry: gitleaks git --pre-commit --staged --redact
+        language: system
+        pass_filenames: false
+      - id: ruff
+        name: ruff check
+        entry: uv run ruff check .
+        language: system
+        pass_filenames: false
+      - id: ruff-format
+        name: ruff format --check
+        entry: uv run ruff format --check .
+        language: system
+        pass_filenames: false
+      - id: hygiene
+        name: repo hygiene (no home paths, tailnet addresses, tokens)
+        entry: uv run pytest -q tests/test_repo_hygiene.py
+        language: system
+        pass_filenames: false

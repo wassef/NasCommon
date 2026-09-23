@@ -1,0 +1,61 @@
+[project]
+name = "nascommon"
+version = "0.1.0"
+description = "The pieces three NAS-hosted apps kept copying: API and service-key auth, CSRF and security headers, the Claude bridge client, Web Push, Google OAuth, timezone-safe scheduling and the PWA shell."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "Wassef" }]
+# Nothing here is needed to import the package: each module that talks to the outside world pulls
+# its library in through an extra, so a consumer installs only what it uses.
+dependencies = []
+
+[project.optional-dependencies]
+bridge = ["httpx>=0.27"]
+push = ["pywebpush>=2.0"]
+google = ["google-auth>=2.30", "google-auth-oauthlib>=1.2"]
+scheduling = ["apscheduler>=3.10,<4"]
+all = ["nascommon[bridge,push,google,scheduling]"]
+
+[dependency-groups]
+dev = [
+    "nascommon[all]",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nascommon"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
+
+[tool.coverage.run]
+source = ["nascommon"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+exclude_also = ["if TYPE_CHECKING:", "\\.\\.\\.$"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP", "ASYNC", "I"]
+ignore = ["E501", "UP017"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E702", "E701", "ASYNC109"]

@@ -1,0 +1,36 @@
+name: ci
+permissions:
+  contents: read
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v7.0.1
+        with:
+          fetch-depth: 0 # gitleaks reads the whole history
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v10.2.0
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+      - name: dependencies, exactly as locked
+        run: uv sync --frozen
+      - name: lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: tests, 100 % line and branch coverage
+        run: uv run pytest -q --cov
+      - name: the wheel builds and imports with no extras
+        run: |
+          uv build --wheel -o dist
+          python -m venv /tmp/bare && /tmp/bare/bin/pip install -q dist/*.whl
+          /tmp/bare/bin/python -c "import nascommon.auth, nascommon.web, nascommon.pwa, nascommon.bridge, nascommon.webpush, nascommon.google_oauth, nascommon.scheduling; print('ok')"
+      - name: secret scan
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
