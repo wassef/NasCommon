@@ -42,9 +42,9 @@ Registry id: `nascommon` · State: @STATUS.md
 ## Gotchas
 - Asturlab's container runs `uv sync --frozen` with no git in the image: it consumes only the vendored wheel,
   never a git URL.
-- The Job-Search and Local-Ai-App `nascommon` branches cannot build until the GitHub remote exists and the NAS
-  image build can reach it; their checkouts stay on their default branch until then, because their deploy
-  scripts rsync the working tree.
+- The Job-Search and Local-Ai-App `nascommon` branches pin the public `v0.1.0` tarball; merging one means an
+  image rebuild there (its pip list lives in the compose), so their checkouts stay on their default branch until
+  that deploy is planned, because their deploy scripts rsync the working tree.
 - `scheduling.Schedule(tz)` exists because a bare `CronTrigger` in a UTC container fires hours late; consumers
   never build triggers by hand.
 - `pytest --cov` writes `.coverage` at the root (ignored).
@@ -52,4 +52,4 @@ Registry id: `nascommon` · State: @STATUS.md
 ## Done means
 - `uv run pytest --cov` at 100 % and `pre-commit run --all-files` green · an API change tagged and journaled ·
   STATUS.md updated when the change is meaningful · signed commit (and signed tag for a release), no AI
-  trailers · pushed once the remote exists
+  trailers · pushed, CI green (public repo: github.com/wassef/NasCommon)
