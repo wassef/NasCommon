@@ -13,8 +13,6 @@ jobs:
         python: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0 # gitleaks reads the whole history
       - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e  # v10.3.2
         with:
           enable-cache: true
@@ -30,7 +28,3 @@ jobs:
           uv build --wheel -o dist
           python -m venv /tmp/bare && /tmp/bare/bin/pip install -q dist/*.whl
           /tmp/bare/bin/python -c "import nascommon.auth, nascommon.web, nascommon.pwa, nascommon.bridge, nascommon.webpush, nascommon.google_oauth, nascommon.scheduling; print('ok')"
-      - name: secret scan
-        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

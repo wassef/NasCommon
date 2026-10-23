@@ -14,8 +14,8 @@ Registry id: `nascommon` · State: @STATUS.md
 - Setup: `uv sync` · Test: `uv run pytest --cov` (100 % line and branch is the gate) · Lint:
   `uv run ruff check . && uv run ruff format --check .`
 - Gate: `pre-commit run --all-files` (gitleaks, `hub hygiene .`, ruff check and format, the repo hygiene test);
-  the pre-push hook runs the tests with coverage. CI `ci.yml`: 3.11 + 3.12, the bare wheel builds and imports
-  with no extras, gitleaks on the full history.
+  the pre-push hook runs the tests with coverage. CI: `ci.yml` (3.11 + 3.12; the bare wheel builds and imports
+  with no extras) and `gitleaks.yml` (the gitleaks CLI over the full history, checksum-pinned).
 - Release: bump `version` in `pyproject.toml`, signed tag `git tag -s vX.Y.Z`; then Asturlab:
   `bin/vendor.sh ~/WorkSpace/Asturlab vX.Y.Z` and `uv lock --refresh-package nascommon` there; the other two
   bump the tag in their tarball URL.
