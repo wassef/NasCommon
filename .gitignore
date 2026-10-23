@@ -23,3 +23,5 @@ build/
 .vscode/
 .claude/settings.local.json
 .claude/worktrees/
+.claude/plans/
+CLAUDE.local.md

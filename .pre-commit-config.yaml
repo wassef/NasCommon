@@ -1,5 +1,7 @@
-# Install once: uv tool install pre-commit && pre-commit install
-# gitleaks binary: brew install gitleaks
+# Install once: uv tool install pre-commit && pre-commit install   (installs both hook types below)
+# gitleaks binary: brew install gitleaks; hub: the workspace CLI.
+# Commit: gitleaks, hub hygiene, ruff check and format, the repo hygiene test. Push: tests with the 100 % gate.
+default_install_hook_types: [pre-commit, pre-push]
 repos:
   - repo: local
     hooks:
@@ -8,18 +10,36 @@ repos:
         entry: gitleaks git --pre-commit --staged --redact
         language: system
         pass_filenames: false
+        stages: [pre-commit]
+      - id: hub-hygiene
+        name: hygiene (no secrets, home paths, tailnet addresses)
+        entry: hub hygiene .
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
       - id: ruff
         name: ruff check
         entry: uv run ruff check .
         language: system
         pass_filenames: false
+        stages: [pre-commit]
       - id: ruff-format
         name: ruff format --check
         entry: uv run ruff format --check .
         language: system
         pass_filenames: false
+        stages: [pre-commit]
       - id: hygiene
-        name: repo hygiene (no home paths, tailnet addresses, tokens)
+        name: "repo hygiene test (works without the hub: CI, cloud sessions)"
         entry: uv run pytest -q tests/test_repo_hygiene.py
         language: system
         pass_filenames: false
+        stages: [pre-commit]
+      - id: tests
+        name: tests with the 100 % coverage gate
+        entry: uv run pytest -q --cov
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
